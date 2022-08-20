@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "npx eslint",
-    "start": "app.js",
+    "start": "node app.js",
     "dev": "nodemon app.js"
   },
   "repository": {
@@ -20,14 +20,14 @@
   "homepage": "https://github.com/greybirbroman/express-mesto-gha#readme",
   "dependencies": {
     "body-parser": "^1.20.0",
-    "eslint": "^8.22.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0",
     "express": "^4.18.1",
     "mongoose": "^6.5.2",
     "router": "^1.3.7"
   },
   "devDependencies": {
-    "nodemon": "^2.0.19"
+    "nodemon": "^2.0.19",
+    "eslint": "^8.22.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
   }
 }
