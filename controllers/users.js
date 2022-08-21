@@ -4,6 +4,7 @@ const {
   STATUS_CREATED,
   FOUND_ERROR_CODE,
   SERVER_ERROR,
+  ERROR_CODE,
 } = require('../utils/constants');
 
 module.exports.getUsers = (req, res) => {
@@ -27,8 +28,14 @@ module.exports.getUserById = (req, res) => {
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
-    .then((user) => res.status(STATUS_CREATED).send({ data: user }))
-    .catch((err) => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
+    .then((user) => {
+      if (res.status === ERROR_CODE) {
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя` });
+        return;
+      }
+      res.status(STATUS_CREATED).send({ data: user })
+        .catch((err) => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
+    });
 };
 
 module.exports.updateProfile = (req, res) => {

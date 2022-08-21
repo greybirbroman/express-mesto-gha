@@ -17,7 +17,7 @@ module.exports.getCards = (req, res) => {
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(STATUS_CREATED).send({ data: card }))
+    .then((card) => res.status(STATUS_CREATED).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID: ${err}` });
