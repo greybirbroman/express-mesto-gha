@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
-    requred: true,
+    required: true,
     minlength: 2,
     maxlength: 30,
   },
@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    requred: true,
+    required: true,
     ref: 'user',
   },
   likes: [{
