@@ -10,7 +10,13 @@ const {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(STATUS_OK).send({ data: users }))
+    .then((users) => {
+      if (!users) {
+        res.status(FOUND_ERROR_CODE).send({ message: `${FOUND_ERROR_CODE} Пользователи не найдены` });
+        return;
+      }
+      res.status(STATUS_OK).send({ data: users });
+    })
     .catch((err) => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
 };
 
@@ -64,14 +70,14 @@ module.exports.updateProfile = (req, res) => {
   )
     .then((user) => {
       if (!name || !about) {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя` });
         return;
       }
       res.status(STATUS_OK).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя - ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя - ${err}` });
         return;
       }
       res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
@@ -89,6 +95,12 @@ module.exports.updateAvatar = (req, res) => {
       upsert: true, // если пользователь не найден, он будет создан
     },
   )
-    .then((user) => res.status(STATUS_OK).send({ data: user }))
+    .then((user) => {
+      if (!avatar) {
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления аватара` });
+        return;
+      }
+      res.status(STATUS_OK).send({ data: user });
+    })
     .catch((err) => res.status(SERVER_ERROR).send({ message: ` ${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
 };
