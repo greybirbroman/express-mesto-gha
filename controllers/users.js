@@ -10,14 +10,8 @@ const {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => {
-      if (!users) {
-        res.status(FOUND_ERROR_CODE).send({ message: `${FOUND_ERROR_CODE} Пользователи не найдены` });
-        return;
-      }
-      res.status(STATUS_OK).send({ data: users });
-    })
-    .catch((err) => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
+    .then((users) => res.status(STATUS_OK).send({ data: users }))
+    .catch(() => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` }));
 };
 
 module.exports.getUserById = (req, res) => {
@@ -31,10 +25,10 @@ module.exports.getUserById = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID: ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID` });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
 
@@ -45,62 +39,62 @@ module.exports.createUser = (req, res) => {
       res.status(STATUS_CREATED).send({ data: user });
     })
     .catch((err) => {
-      if (!name || !about || !avatar) {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя - ${err}` });
-        return;
-      }
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя - ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя` });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
 
 module.exports.updateProfile = (req, res) => {
   const { name, about } = req.body;
+  if (!name || !about) {
+    res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя` });
+    return;
+  }
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
     {
       new: true, // обработчик then получит на вход обновлённую запись
       runValidators: true, // данные будут валидированы перед изменением
-      upsert: true, // если пользователь не найден, он будет создан
     },
   )
     .then((user) => {
-      if (!name || !about) {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя` });
-        return;
-      }
       res.status(STATUS_OK).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя - ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя` });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
 
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
+  if (!avatar) {
+    res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления аватара` });
+    return;
+  }
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
     {
       new: true, // обработчик then получит на вход обновлённую запись
       runValidators: true, // данные будут валидированы перед изменением
-      upsert: true, // если пользователь не найден, он будет создан
     },
   )
     .then((user) => {
-      if (!avatar) {
+      res.status(STATUS_OK).send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
         res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления аватара` });
         return;
       }
-      res.status(STATUS_OK).send({ data: user });
-    })
-    .catch((err) => res.status(SERVER_ERROR).send({ message: ` ${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
+      res.status(SERVER_ERROR).send({ message: ` ${SERVER_ERROR} - Произошла ошибка на сервере` });
+    });
 };

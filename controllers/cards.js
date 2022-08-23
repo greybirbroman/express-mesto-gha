@@ -10,14 +10,8 @@ const {
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .then((cards) => {
-      if (!cards) {
-        res.status(FOUND_ERROR_CODE).send({ message: `${FOUND_ERROR_CODE} Карточки не найдены` });
-        return;
-      }
-      res.status(STATUS_OK).send(cards);
-    })
-    .catch((err) => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` }));
+    .then((cards) => res.status(STATUS_OK).send(cards))
+    .catch(() => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` }));
 };
 
 module.exports.createCard = (req, res) => {
@@ -28,13 +22,9 @@ module.exports.createCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} Переданы некорректные данные в методе создания пользователя - ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} Переданы некорректные данные в методе создания пользователя` });
       }
-      if (err.name === 'CastError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID: ${err}` });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
 
@@ -49,10 +39,10 @@ module.exports.deleteCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID: ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID` });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
 
@@ -71,10 +61,10 @@ module.exports.likeCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID: ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID` });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
 
@@ -93,9 +83,9 @@ module.exports.dislikeCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID: ${err}` });
+        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID` });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере - ${err}` });
+      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
     });
 };
