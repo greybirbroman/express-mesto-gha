@@ -1,11 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const routes = require('./routes/index');
 const { FOUND_ERROR_CODE } = require('./utils/constants');
 
 const app = express();
+
+app.use(helmet());
+
 const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
