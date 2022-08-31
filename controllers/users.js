@@ -18,18 +18,6 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 
-// module.exports.getUserById = (req, res, next) => {
-//   User.findById(req.params.userId)
-//     .then((user) => {
-//       if (!user) {
-//         res.status(FOUND_ERROR_CODE).send({ message: `${FOUND_ERROR_CODE} - ` });
-//         return;
-//       }
-//       res.status(STATUS_OK).send({ data: user });
-//     })
-//     .catch(next);
-// };
-
 module.exports.createUser = (req, res, next) => {
   const {
     email, password, name, about, avatar,
@@ -49,7 +37,24 @@ module.exports.createUser = (req, res, next) => {
       email, password: hash, name, about, avatar,
     }))
     .then((user) => {
-      res.status(STATUS_CREATED).send({ id: user._id, email: user.email });
+      res.status(STATUS_CREATED).send({
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        _id: user._id,
+      });
+    })
+    .catch(next);
+};
+
+module.exports.getUserById = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Нет пользователя с таким id');
+      }
+      res.status(STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
@@ -60,7 +65,13 @@ module.exports.getProfile = (req, res, next) => User
     if (!user) {
       throw new NotFoundError('Нет пользователя с таким id');
     }
-    res.status(STATUS_OK).send({ data: user });
+    res.status(STATUS_OK).send({
+      email: user.email,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      _id: user._id,
+    });
   })
   .catch(next);
 

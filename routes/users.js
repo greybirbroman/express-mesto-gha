@@ -7,11 +7,18 @@ const {
   updateProfile,
   updateAvatar,
   getProfile,
+  getUserById,
 } = require('../controllers/users');
 
 router.get('/users', auth, getUsers);
 
 router.get('/users/me', auth, getProfile);
+
+router.get('/users/:userId', auth, celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().alphanum().length(24),
+  }),
+}), getUserById);
 
 router.patch('/users/me', auth, celebrate({
   body: Joi.object().keys({

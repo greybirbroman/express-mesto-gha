@@ -8,11 +8,10 @@ const routes = require('./routes/index');
 const { FOUND_ERROR_CODE, SERVER_ERROR } = require('./utils/constants');
 const { createUser, login } = require('./controllers/users');
 
+const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(helmet());
-
-const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -33,6 +32,9 @@ app.post('/signin', celebrate({
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(/https?:\/\/(www)?[\-\.~:\/\?#\[\]@!$&'\(\)*\+,;=\w]+#?\b/),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
