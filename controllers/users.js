@@ -5,63 +5,67 @@ const User = require('../models/user');
 const {
   STATUS_OK,
   STATUS_CREATED,
-  FOUND_ERROR_CODE,
-  SERVER_ERROR,
   ERROR_CODE,
-  UNAUTORIZED_ERROR,
 } = require('../utils/constants');
+const NotFoundError = require('../errors/not-found-err');
+const ExistError = require('../errors/exist-err');
+const DataError = require('../errors/data-err');
+const BadRequestError = require('../errors/bad-request-err');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(STATUS_OK).send({ data: users }))
-    .catch(() => res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
-  User.findById(req.params.userId)
+// module.exports.getUserById = (req, res, next) => {
+//   User.findById(req.params.userId)
+//     .then((user) => {
+//       if (!user) {
+//         res.status(FOUND_ERROR_CODE).send({ message: `${FOUND_ERROR_CODE} - ` });
+//         return;
+//       }
+//       res.status(STATUS_OK).send({ data: user });
+//     })
+//     .catch(next);
+// };
+
+module.exports.createUser = (req, res, next) => {
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Отсутствует почта или пароль!');
+  }
+
+  User.findOne({ email })
     .then((user) => {
-      if (!user) {
-        res.status(FOUND_ERROR_CODE).send({ message: `${FOUND_ERROR_CODE} - Запрашиваемый пользователь не найден` });
-        return;
+      if (user) {
+        throw new ExistError('Такой пользователь уже существует!');
       }
-      res.status(STATUS_OK).send({ data: user });
+      return bcrypt.hash(password, 10);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Передан не корректный ID` });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
-    });
-};
-
-module.exports.createUser = (req, res) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
-  bcrypt.hash(password, 10)
     .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
+      email, password: hash, name, about, avatar,
+    }))
+    .then((user) => {
+      res.status(STATUS_CREATED).send({ id: user._id, email: user.email });
     })
-      .then((user) => {
-        if (user) {
-          res.status(409).send({ message: 'Такой пользователь уже существует' });
-        }
-        res.status(STATUS_CREATED).send({ data: user });
-      }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе создания пользователя` });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
-    });
+    .catch(next);
 };
 
-module.exports.login = (req, res) => {
-  const {
-    email, password,
-  } = req.body;
+module.exports.getProfile = (req, res, next) => User
+  .findById(req.user._id).select('+password')
+  .then((user) => {
+    if (!user) {
+      throw new NotFoundError('Нет пользователя с таким id');
+    }
+    res.status(STATUS_OK).send({ data: user });
+  })
+  .catch(next);
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -69,11 +73,12 @@ module.exports.login = (req, res) => {
       res.send({ token });
     })
     .catch(() => {
-      res.status(UNAUTORIZED_ERROR).send({ message: 'Неправильные почта или пароль' });
-    });
+      throw new DataError('Неправильные почта или пароль');
+    })
+    .catch(next);
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   if (!name || !about) {
     res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя` });
@@ -90,16 +95,10 @@ module.exports.updateProfile = (req, res) => {
     .then((user) => {
       res.status(STATUS_OK).send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления пользователя` });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: `${SERVER_ERROR} - Произошла ошибка на сервере` });
-    });
+    .catch(next);
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   if (!avatar) {
     res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления аватара` });
@@ -116,11 +115,5 @@ module.exports.updateAvatar = (req, res) => {
     .then((user) => {
       res.status(STATUS_OK).send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE).send({ message: `${ERROR_CODE} - Переданы некорректные данные в методе обновления аватара` });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: ` ${SERVER_ERROR} - Произошла ошибка на сервере` });
-    });
+    .catch(next);
 };
