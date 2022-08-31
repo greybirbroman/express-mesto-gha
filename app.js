@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const routes = require('./routes/index');
 const { FOUND_ERROR_CODE } = require('./utils/constants');
+const { createUser, login } = require('./controllers/users');
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cors());
 
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use(routes);
 
 // Обработать неправильный путь
